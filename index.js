@@ -28,11 +28,11 @@ module.exports = function (opts, cb) {
         var host = (req.headers.host || '').split(':')[0];
         var subdomain = host.split('.').slice(0,-2).join('.');
         
-        if (subdomain === 'boiler') {
+        if (subdomain === 'ploy') {
             ci.handle(req, res);
         }
-        else if (boiler.branches[subdomain]) {
-            bounce(boiler.branches[subdomain]);
+        else if (ploy.branches[subdomain]) {
+            bounce(ploy.branches[subdomain]);
         }
         else if (cb) {
             cb(req, res, bounce);
@@ -43,20 +43,20 @@ module.exports = function (opts, cb) {
         }
     });
     
-    var boiler = new Boiler(bouncer);
-    return boiler;
+    var ploy = new Ploy(bouncer);
+    return ploy;
 };
 
-function Boiler (bouncer) {
+function Ploy (bouncer) {
     this.bouncer = bouncer;
     this.branches = {};
 }
 
-Boiler.prototype.move = function (src, dst) {
+Ploy.prototype.move = function (src, dst) {
     if (!this.branches[src]) return;
     this.branches[dst] = this.branches[src];
 };
 
-Boiler.prototype.listen = function () {
+Ploy.prototype.listen = function () {
     return this.bouncer.listen.apply(this.bouncer, arguments);
 };
