@@ -1,11 +1,15 @@
 var bouncy = require('bouncy');
 var cicada = require('cicada');
+var path = require('path');
 
 module.exports = function (opts, cb) {
     if (typeof opts === 'function') { cb = opts; opts = {} }
     if (!opts) opts = {};
     if (typeof opts === 'string') {
-        opts = { repodir: opts + '/repo', workdir: opts + '/work' };
+        opts = {
+            repodir: path.resolve(opts + '/repo'),
+            workdir: path.resolve(opts + '/work')
+        };
     }
     
     var ci = cicada(opts);
