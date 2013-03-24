@@ -85,6 +85,10 @@ Add a a service under a branch `name`. `rec` should have:
 
 Remove the process at the branch `name`, killing as necessary.
 
+## server.restart(name)
+
+Restart the process at the branch `name`.
+
 ## server.move(src, dst)
 
 Move the process at branch name `src` to `dst`, killing the branch process at

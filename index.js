@@ -136,6 +136,11 @@ Ploy.prototype.remove = function (name) {
     });
 };
 
+Ploy.prototype.restart = function (name) {
+    var b = this.branches[name];
+    if (b) b.process.kill();
+};
+
 Ploy.prototype.move = function (src, dst) {
     if (!this.branches[src]) return;
     if (this.branches[dst]) this.remove(dst);
@@ -168,6 +173,11 @@ Ploy.prototype.handle = function (req, res) {
             .map(function (s) { return s + '\n' })
             .join('')
         );
+    }
+    else if (RegExp('^/_ploy/restart/').test(req.url)) {
+        var name = req.url.split('/')[3];
+        this.restart(name);
+        res.end();
     }
 };
 
