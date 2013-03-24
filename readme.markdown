@@ -36,6 +36,17 @@ Now go to `http://staging.localhost/` to see your staging instance.
 (Edit /etc/hosts or set up dns wildcards with
 [dnsmasq](http://www.thekelleys.org.uk/dnsmasq/doc.html) to test locally.)
 
+# details
+
+ploy does not detach your server processes. When the ploy server goes down, it
+takes the processes it started with it.
+
+However, when the ploy server is started back up, it will attempt to restart all
+of the processes it was previously running.
+
+When you `git push` code at a ploy server, your server will be started and any
+previous server running under the same branch name will be killed.
+
 # methods
 
 ``` js
