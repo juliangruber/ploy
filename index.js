@@ -47,7 +47,8 @@ module.exports = function (opts) {
         var subdomain = host.split('.').slice(0,-2).join('.');
         var branch = { '': 'master', 'www': 'master' }[subdomain] || subdomain;
         
-        if (subdomain === 'ploy') {
+        if (RegExp('^/_ploy/[^?]+\\.git\\b').test(req.url)) {
+            req.url = req.url.replace(RegExp('^/_ploy/'), '/');
             ci.handle(req, res);
         }
         else if (ploy.branches[branch]) {
@@ -55,7 +56,7 @@ module.exports = function (opts) {
         }
         else {
             res.statusCode = 404;
-            res.end('host not found');
+            res.end('host not found\n');
         }
     });
     
