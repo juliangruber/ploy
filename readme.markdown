@@ -33,8 +33,8 @@ $ git push http://localhost/_ploy/server.git master:staging
 ```
 
 Now go to `http://staging.localhost/` to see your staging instance.
-(Set up dns wildcards with
-[dnsmasq](http://www.thekelleys.org.uk/dnsmasq/doc.html) to test locally).
+(Edit /etc/hosts or set up dns wildcards with
+[dnsmasq](http://www.thekelleys.org.uk/dnsmasq/doc.html) to test locally.)
 
 # methods
 
