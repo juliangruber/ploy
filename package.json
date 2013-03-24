@@ -2,6 +2,9 @@
     "name": "ploy",
     "version": "0.0.0",
     "description": "git push deploy http router, hosting branches on subdomains",
+    "bin": {
+        "ploy": "bin/cmd.js"
+    },
     "main": "index.js",
     "dependencies": {
         "bouncy": "~3.1.0",
@@ -10,7 +13,8 @@
         "shell-quote": "~0.0.1"
     },
     "devDependencies": {
-        "tap": "~0.4.0"
+        "tap": "~0.4.0",
+        "request": "~2.16.6"
     },
     "scripts": {
         "test": "tap test/*.js"
