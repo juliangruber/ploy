@@ -1,0 +1,37 @@
+{
+    "name": "ploy",
+    "version": "0.0.0",
+    "description": "git push deploy http router, hosting branches on subdomains",
+    "main": "index.js",
+    "dependencies": {
+        "bouncy": "~3.1.0",
+        "cicada": "~1.0.2",
+        "clone": "~0.1.6",
+        "shell-quote": "~0.0.1"
+    },
+    "devDependencies": {
+        "tap": "~0.4.0"
+    },
+    "scripts": {
+        "test": "tap test/*.js"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/substack/ploy.git"
+    },
+    "homepage": "https://github.com/substack/ploy",
+    "keywords": [
+        "git",
+        "deploy",
+        "continuous",
+        "push",
+        "http",
+        "proxy"
+    ],
+    "author": {
+        "name": "James Halliday",
+        "email": "mail@substack.net",
+        "url": "http://substack.net"
+    },
+    "license": "MIT"
+}

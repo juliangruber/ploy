@@ -39,7 +39,7 @@ module.exports = function (opts) {
                 hash: commit.hash,
                 process: ps
             });
-        }, 3000);
+        }, opts.delay == undefined ? 3000 : opts.delay);
         
         ps.on('exit', function (code) {
             clearTimeout(to);
