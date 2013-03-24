@@ -6,6 +6,7 @@ var fs = require('fs');
 
 var clone = require('clone');
 var parseQuote = require('shell-quote').parse;
+var spawn = require('child_process').spawn;
 
 module.exports = function (opts) {
     if (!opts) opts = {};
@@ -65,6 +66,7 @@ Ploy.prototype._deploy = function (commit) {
             self.add(commit.branch, {
                 port: port,
                 hash: commit.hash,
+                repo: commit.repo,
                 process: ps
             });
         }, self.branches[commit.branch] ? self.delay : 0);
@@ -90,6 +92,9 @@ Ploy.prototype.remove = function (name) {
     var b = this.branches[name];
     if (b) b.process.kill();
     delete this.branches[name];
+    spawn('git', [ 'branch', '-D', name ], {
+        cwd: path.join(this.ci.repodir, b.repo)
+    });
 };
 
 Ploy.prototype.move = function (src, dst) {
