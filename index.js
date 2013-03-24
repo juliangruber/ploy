@@ -53,7 +53,7 @@ Ploy.prototype._deploy = function (commit) {
     var env = clone(process.env);
     var port = Math.floor(Math.random() * (Math.pow(2,16)-1024) + 1024);
     env.PORT = port;
-     
+    
     spawnProcess(commit, env, function (err, ps) {
         if (err) return console.error(err)
         
@@ -67,7 +67,7 @@ Ploy.prototype._deploy = function (commit) {
                 hash: commit.hash,
                 process: ps
             });
-        }, self.delay);
+        }, self.branches[commit.branch] ? self.delay : 0);
         
         ps.on('exit', function (code) {
             clearTimeout(to);
