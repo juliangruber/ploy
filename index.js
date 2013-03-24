@@ -103,14 +103,16 @@ Ploy.prototype.listen = function () {
 function spawnProcess (commit, env, cb) {
     // `npm start` ignores too many signals
     fs.readFile(path.join(commit.dir, 'package.json'), function (err, src) {
-        if (err) return cb(err);
+        if (err && err.code === 'ENOENT') {
+            src = JSON.stringify({ scripts: { start: 'node server.js' } });
+        }
+        else if (err) return cb(err);
+        
         try { var pkg = JSON.parse(src) }
         catch (e) { return cb(e) }
-        if (!pkg.scripts || !pkg.scripts.start) {
-            return cb('no scripts.start provided');
-        }
         
-        var start = pkg.scripts.start;
+        var start = pkg.scripts && pkg.scripts.start || 'node server.js';
+        
         if (!Array.isArray(start)) start = parseQuote(start);
         cb(null, commit.spawn(start, { env: env }));
     });
