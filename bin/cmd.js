@@ -7,15 +7,14 @@ var hyperquest = require('hyperquest');
 
 var cmd = argv._[0];
 if (cmd === 'list' || cmd === 'ls') {
-    getRemotes(function (err, remotes) {
+    getRemote(function (err, remote) {
         if (err) return error(err);
-        remotes.forEach(function (remote) {
-            var hq = hyperquest(remote + '/list');
-            hq.pipe(process.stdout);
-            hq.on('error', function (err) {
-                var msg = 'Error connecting to ' + remote + ': ' + err.message;
-                console.error(msg);
-            });
+        
+        var hq = hyperquest(remote + '/list');
+        hq.pipe(process.stdout);
+        hq.on('error', function (err) {
+            var msg = 'Error connecting to ' + remote + ': ' + err.message;
+            console.error(msg);
         });
     });
 }
@@ -23,17 +22,9 @@ else if (cmd === 'move' || cmd === 'mv') {
     argv._.shift();
     var src = argv.src || argv._.shift();
     var dst = argv.dst || argv._.shift();
-    getRemotes(function (err, remotes) {
+    getRemote(function (err, remote) {
         if (err) return error(err);
         
-        if (remotes.length === 0) {
-            return error('No ploy remotes found. Add a remote or pass -r.');
-        }
-        if (remotes.length >= 2) {
-            return error('More than one ploy remote. Disambiguate with -r.');
-        }
-        
-        var remote = remotes[0];
         var hq = hyperquest(remote + '/move/' + src + '/' + dst);
         hq.pipe(process.stdout);
         hq.on('error', function (err) {
@@ -45,17 +36,9 @@ else if (cmd === 'move' || cmd === 'mv') {
 else if (cmd === 'remove' || cmd === 'rm') {
     argv._.shift();
     var name = argv.name || argv._.shift();
-    getRemotes(function (err, remotes) {
+    getRemote(function (err, remote) {
         if (err) return error(err);
         
-        if (remotes.length === 0) {
-            return error('No ploy remotes found. Add a remote or pass -r.');
-        }
-        if (remotes.length >= 2) {
-            return error('More than one ploy remote. Disambiguate with -r.');
-        }
-        
-        var remote = remotes[0];
         var hq = hyperquest(remote + '/remove/' + name);
         hq.pipe(process.stdout);
         hq.on('error', function (err) {
@@ -74,9 +57,26 @@ function error (err) {
     process.exit(1);
 }
 
+function getRemote (cb) {
+    getRemotes(function (err, remotes) {
+        if (err) cb(err)
+        else if (remotes.length === 0) {
+            cb('No matching ploy remotes found. Add a remote or use -r.');
+        }
+        else if (remotes.length >= 2) {
+            cb('More than one matching ploy remote. Disambiguate with -r.');
+        }
+        else cb(null, remotes[0]);
+    });
+}
+
 function getRemotes (cb) {
     var r = argv.r || argv.remote;
-    if (/^https?:/.test(r)) return cb(null, [r]);
+    if (/^https?:/.test(r)) {
+        r = r.replace(/_ploy\\b.*/, '/_ploy');
+        if (!/_ploy$/.test(r)) r = r.replace(/\/*$/, '/_ploy');
+        return cb(null, [r]);
+    }
     
     exec('git remote -v', function (err, stdout, stderr) {
         if (err) return cb(err);
