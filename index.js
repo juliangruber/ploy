@@ -28,8 +28,11 @@ function Ploy (opts) {
     
     self.bouncer = bouncy(opts, function (req, res, bounce) {
         var host = (req.headers.host || '').split(':')[0];
-        var subdomain = host.split('.').slice(0,-2).join('.');
-        var branch = { '': 'master', 'www': 'master' }[subdomain] || subdomain;
+        var parts = host.split('.');
+        var subdomain = parts.slice(0,-2).join('.')
+            || parts.slice(0,-1).join('.')
+        ;
+        var branch = self.branches[subdomain] ? subdomain : 'master';
         
         if (RegExp('^/_ploy\\b').test(req.url)) {
             self.handle(req, res);
