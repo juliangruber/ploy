@@ -15,69 +15,68 @@ module.exports = function (opts) {
             workdir: path.resolve(opts + '/work')
         };
     }
+    return new Ploy(opts);
+}; 
+
+function Ploy (opts) {
+    var self = this;
+    self.branches = {};
+    self.delay = opts.delay == undefined ? 3000 : opts.delay;
     
-    var ci = cicada(opts);
-    ci.on('commit', function respawn (commit) {
-        var env = clone(process.env);
-        var port = Math.floor(Math.random() * (Math.pow(2,16)-1024) + 1024);
-        env.PORT = port;
-        
-        spawnProcess(commit, env, function (err, ps) {
-            if (err) console.error(err)
-            else deploy(commit, port, ps)
-        });
-    });
+    self.ci = cicada(opts);
+    self.ci.on('commit', self._deploy.bind(self));
     
-    function deploy (commit, port, ps) {
-        var to = setTimeout(function () {
-            // didn't crash in 3 seconds, add to routing table
-            if (ploy.branches[commit.branch]) {
-                ploy.remove(commit.branch);
-            }
-            ploy.add(commit.branch, {
-                port: port,
-                hash: commit.hash,
-                process: ps
-            });
-        }, opts.delay == undefined ? 3000 : opts.delay);
-        
-        ps.on('exit', function (code) {
-            clearTimeout(to);
-            
-            var b = ploy.branches[commit.branch];
-            if (b && b.hash === commit.hash) {
-                ploy.remove(commit.branch);
-                respawn(commit);
-            }
-        });
-    }
-    
-    var bouncer = bouncy(opts, function (req, res, bounce) {
+    self.bouncer = bouncy(opts, function (req, res, bounce) {
         var host = (req.headers.host || '').split(':')[0];
         var subdomain = host.split('.').slice(0,-2).join('.');
         var branch = { '': 'master', 'www': 'master' }[subdomain] || subdomain;
         
-        if (RegExp('^/_ploy/[^?]+\\.git\\b').test(req.url)) {
-            req.url = req.url.replace(RegExp('^/_ploy/'), '/');
-            ci.handle(req, res);
+        if (RegExp('^/_ploy\\b').test(req.url)) {
+            self.handle(req, res);
         }
-        else if (ploy.branches[branch]) {
-            bounce(ploy.branches[branch]);
+        else if (self.branches[branch]) {
+            bounce(self.branches[branch]);
         }
         else {
             res.statusCode = 404;
             res.end('host not found\n');
         }
     });
-    
-    var ploy = new Ploy(bouncer);
-    return ploy;
-};
-
-function Ploy (bouncer) {
-    this.bouncer = bouncer;
-    this.branches = {};
 }
+
+Ploy.prototype._deploy = function (commit) {
+    var self = this;
+    
+    var env = clone(process.env);
+    var port = Math.floor(Math.random() * (Math.pow(2,16)-1024) + 1024);
+    env.PORT = port;
+     
+    spawnProcess(commit, env, function (err, ps) {
+        if (err) return console.error(err)
+        
+        var to = setTimeout(function () {
+            // didn't crash in 3 seconds, add to routing table
+            if (self.branches[commit.branch]) {
+                self.remove(commit.branch);
+            }
+            self.add(commit.branch, {
+                port: port,
+                hash: commit.hash,
+                process: ps
+            });
+        }, self.delay);
+        
+        ps.on('exit', function (code) {
+            clearTimeout(to);
+            
+            var b = self.branches[commit.branch];
+            if (b && b.hash === commit.hash) {
+                ploy.remove(commit.branch);
+                self._deploy(commit);
+            }
+        });
+    });
+};
 
 Ploy.prototype.add = function (name, rec) {
     if (this.branches[name]) this.remove(name);
@@ -98,6 +97,27 @@ Ploy.prototype.move = function (src, dst) {
 
 Ploy.prototype.listen = function () {
     return this.bouncer.listen.apply(this.bouncer, arguments);
+};
+
+Ploy.prototype.handle = function (req, res) {
+    if (RegExp('^/_ploy/[^?]+\\.git\\b').test(req.url)) {
+        req.url = req.url.replace(RegExp('^/_ploy/'), '/');
+        this.ci.handle(req, res);
+    }
+    else if (RegExp('^/_ploy/move/').test(req.url)) {
+        var xs = req.url.split('/').slice(2);
+        var src = xs[0], dst = xs[1];
+        this.move(src, dst);
+        res.end();
+    }
+    else if (RegExp('^/_ploy/remove/').test(req.url)) {
+        var name = req.url.split('/')[2];
+        this.remove(name);
+        res.end();
+    }
+    else if (RegExp('^/_ploy/list').test(req.url)) {
+        res.end(Object.keys(this.branches).join('\n') + '\n');
+    }
 };
 
 function spawnProcess (commit, env, cb) {
