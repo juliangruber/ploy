@@ -84,7 +84,6 @@ Move the process at branch name `src` to `dst`, killing the branch process at
 * authentication
 * branch swapping
 * process start/stop api
-* start processes back up after a ploy restart
 
 # install
 

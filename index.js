@@ -25,7 +25,7 @@ function Ploy (opts) {
     self.delay = opts.delay == undefined ? 3000 : opts.delay;
     
     self.ci = cicada(opts);
-    self.ci.on('commit', self._deploy.bind(self));
+    self.ci.on('commit', self.deploy.bind(self));
     
     self.bouncer = bouncy(opts, function (req, res, bounce) {
         var host = (req.headers.host || '').split(':')[0];
@@ -46,9 +46,48 @@ function Ploy (opts) {
             res.end('host not found\n');
         }
     });
+    
+    self.restore();
 }
 
-Ploy.prototype._deploy = function (commit) {
+Ploy.prototype.restore = function () {
+    var self = this;
+    
+    fs.readdir(self.ci.repodir, function (err, repos) {
+        if (err) return;
+        repos.forEach(function (repo) {
+            var dir = path.join(self.ci.repodir, repo, 'refs', 'heads');
+            fs.readdir(dir, function (err, refs) {
+                if (err) return;
+                refs.forEach(readCommit.bind(null, repo));
+            });
+        });
+    });
+    
+    function readCommit (repo, ref) {
+        var file = path.join(self.ci.repodir, repo, 'refs', 'heads', ref);
+        fs.readFile(file, function (err, src) {
+            if (err) return console.error(err);
+            restore(repo, ref, String(src).trim());
+        });
+    }
+    
+    function restore (repo, ref, commit) {
+        var port = self.bouncer.address().port;
+        var dir = path.join(self.ci.repodir, repo);
+        var target = {
+            repo: repo,
+            branch: ref,
+            commit: commit
+        };
+        self.ci.checkout(target, function (err, commit) {
+            if (err) console.error(err)
+            else self.deploy(commit)
+        });
+    }
+};
+
+Ploy.prototype.deploy = function (commit) {
     var self = this;
     
     var env = clone(process.env);
@@ -77,7 +116,7 @@ Ploy.prototype._deploy = function (commit) {
             var b = self.branches[commit.branch];
             if (b && b.hash === commit.hash) {
                 ploy.remove(commit.branch);
-                self._deploy(commit);
+                self.deploy(commit);
             }
         });
     });
