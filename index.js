@@ -93,7 +93,7 @@ Ploy.prototype.move = function (src, dst) {
     if (!this.branches[src]) return;
     if (this.branches[dst]) this.remove(dst);
     this.branches[dst] = this.branches[src];
-    this.remove(src);
+    delete this.branches[src];
 };
 
 Ploy.prototype.listen = function () {
