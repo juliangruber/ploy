@@ -97,8 +97,6 @@ Move the process at branch name `src` to `dst`, killing the branch process at
 # todo
 
 * authentication
-* branch swapping
-* process start/stop api
 
 # install
 
