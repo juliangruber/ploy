@@ -1,7 +1,11 @@
 var bouncy = require('bouncy');
 var cicada = require('cicada');
+
 var path = require('path');
+var fs = require('fs');
+
 var clone = require('clone');
+var parseQuote = require('shell-quote').parse;
 
 module.exports = function (opts) {
     if (!opts) opts = {};
@@ -18,7 +22,13 @@ module.exports = function (opts) {
         var port = Math.floor(Math.random() * (Math.pow(2,16)-1024) + 1024);
         env.PORT = port;
         
-        var ps = commit.run('start', { env: env });
+        spawnProcess(commit, env, function (err, ps) {
+            if (err) console.error(err)
+            else deploy(commit, port, ps)
+        });
+    });
+    
+    function deploy (commit, port, ps) {
         var to = setTimeout(function () {
             // didn't crash in 3 seconds, add to routing table
             if (ploy.branches[commit.branch]) {
@@ -40,7 +50,7 @@ module.exports = function (opts) {
                 respawn(commit);
             }
         });
-    });
+    }
     
     var bouncer = bouncy(opts, function (req, res, bounce) {
         var host = (req.headers.host || '').split(':')[0];
@@ -89,3 +99,19 @@ Ploy.prototype.move = function (src, dst) {
 Ploy.prototype.listen = function () {
     return this.bouncer.listen.apply(this.bouncer, arguments);
 };
+
+function spawnProcess (commit, env, cb) {
+    // `npm start` ignores too many signals
+    fs.readFile(path.join(commit.dir, 'package.json'), function (err, src) {
+        if (err) return cb(err);
+        try { var pkg = JSON.parse(src) }
+        catch (e) { return cb(e) }
+        if (!pkg.scripts || !pkg.scripts.start) {
+            return cb('no scripts.start provided');
+        }
+        
+        var start = pkg.scripts.start;
+        if (!Array.isArray(start)) start = parseQuote(start);
+        cb(null, commit.spawn(start, { env: env }));
+    });
+}
