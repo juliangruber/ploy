@@ -1,6 +1,6 @@
 # ploy
 
-git deploy to this http router, hosting branches at subdomains
+git push at this http router and it will host your branches on subdomains
 
 # example
 
