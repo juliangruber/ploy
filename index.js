@@ -93,6 +93,7 @@ Ploy.prototype.move = function (src, dst) {
     if (!this.branches[src]) return;
     if (this.branches[dst]) this.remove(dst);
     this.branches[dst] = this.branches[src];
+    this.remove(src);
 };
 
 Ploy.prototype.listen = function () {
@@ -105,18 +106,21 @@ Ploy.prototype.handle = function (req, res) {
         this.ci.handle(req, res);
     }
     else if (RegExp('^/_ploy/move/').test(req.url)) {
-        var xs = req.url.split('/').slice(2);
+        var xs = req.url.split('/').slice(3);
         var src = xs[0], dst = xs[1];
         this.move(src, dst);
         res.end();
     }
     else if (RegExp('^/_ploy/remove/').test(req.url)) {
-        var name = req.url.split('/')[2];
+        var name = req.url.split('/')[3];
         this.remove(name);
         res.end();
     }
     else if (RegExp('^/_ploy/list').test(req.url)) {
-        res.end(Object.keys(this.branches).join('\n') + '\n');
+        res.end(Object.keys(this.branches)
+            .map(function (s) { return s + '\n' })
+            .join('')
+        );
     }
 };
 
