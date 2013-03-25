@@ -4,9 +4,13 @@ var createServer = require('../');
 var argv = require('optimist').argv;
 var exec = require('child_process').exec;
 var hyperquest = require('hyperquest');
+var fs = require('fs');
 
 var cmd = argv._[0];
-if (cmd === 'list' || cmd === 'ls') {
+if (cmd === 'help' || argv.h || argv.help || process.argv.length <= 2) {
+    fs.createReadStream(__dirname + '/usage.txt').pipe(process.stdout);
+}
+else if (cmd === 'list' || cmd === 'ls') {
     getRemote(function (err, remote) {
         if (err) return error(err);
         

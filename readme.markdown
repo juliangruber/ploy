@@ -53,6 +53,43 @@ previous server running under the same branch name will be killed.
 var ploy = require('ploy')
 ```
 
+# usage
+
+```
+usage:
+
+  ploy DIRECTORY PORT
+  ploy { -d DIRECTORY -p PORT }
+
+    Create a ploy http server, hosting repositories in DIRECTORY and listening
+    on PORT for incoming connections.
+ 
+  ploy ls { -r REMOTE }
+ 
+    List the running process branch names at REMOTE.
+ 
+  ploy mv SRC DST { -r REMOTE }
+ 
+    Move the branch name SRC to the DST branch name at REMOTE.
+ 
+  ploy rm NAME { -r REMOTE }
+ 
+    Remove the branch name at NAME, killing any running processes.
+ 
+  ploy help
+ 
+    Show this message. 
+
+OPTIONS
+
+  For `ploy ls`, `ploy mv`, `ploy rm` commands that take a REMOTE parameter:
+  
+  REMOTE can be a git remote name or a remote URL to a ploy server. If there
+  is exactly one ploy remote in set up as a git remote, it will be used by
+  default.
+
+```
+
 ## var server = ploy(opts)
 
 Create a new ploy instance, splitting `opts` between
