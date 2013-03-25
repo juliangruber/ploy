@@ -7,10 +7,11 @@ think [bouncy](https://github.com/substack/bouncy) +
 
 # example
 
-first start the ploy server:
+create an auth file and start the ploy server:
 
 ```
-$ sudo ploy ./data -p 80
+$ echo '{ "beep": "boop" }' > auth.json
+$ sudo ploy ./data -p 80 -a auth.json
 ```
 
 then from a git repo with a `server.js` and/or a `scripts.start` in its
@@ -19,7 +20,8 @@ package.json:
 `server.js` should host its http server on `process.env.PORT`.
 
 ```
-$ git push http://localhost/_ploy/server.git master
+$ git remote add ploy http://beep:boop@localhost/_ploy/server.git
+$ git push ploy master
 ```
 
 Now your server.js will be running on `http://localhost/`.
@@ -29,12 +31,19 @@ running on `http://localhost/`.
 To launch a staging instance on a subdomain, just push to a non-master branch:
 
 ```
-$ git push http://localhost/_ploy/server.git master:staging
+$ git push ploy master:staging
 ```
 
 Now go to `http://staging.localhost/` to see your staging instance.
 (Edit /etc/hosts or set up dns wildcards with
 [dnsmasq](http://www.thekelleys.org.uk/dnsmasq/doc.html) to test locally.)
+
+Use `ploy ls` to list the running branches:
+
+```
+$ ploy ls
+master
+```
 
 # details
 
@@ -59,10 +68,13 @@ var ploy = require('ploy')
 usage:
 
   ploy DIRECTORY PORT
-  ploy { -d DIRECTORY -p PORT }
+  ploy { -d DIRECTORY | -p PORT | -a AUTHFILE }
 
     Create a ploy http server, hosting repositories in DIRECTORY and listening
     on PORT for incoming connections.
+ 
+    If AUTHFILE is given, it should be a json file that maps usernames to
+    token strings to use for basic auth protection for ploy actions.
  
   ploy ls { -r REMOTE }
  
@@ -100,6 +112,8 @@ instances.
 
 * opts.repodir - directory to put git repo data
 * opts.workdir - directory to check out git repos into
+* opts.auth - optional object mapping usernames to password token strings for
+basic auth
 
 If `opts` is a string, it will be used as the basedir for `opts.repodir` and
 `opts.workdir`.
@@ -130,10 +144,6 @@ Restart the process at the branch `name`.
 
 Move the process at branch name `src` to `dst`, killing the branch process at
 `src` if it was running.
-
-# todo
-
-* authentication
 
 # install
 

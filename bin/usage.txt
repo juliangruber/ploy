@@ -1,10 +1,13 @@
 usage:
 
   ploy DIRECTORY PORT
-  ploy { -d DIRECTORY -p PORT }
+  ploy { -d DIRECTORY | -p PORT | -a AUTHFILE }
 
     Create a ploy http server, hosting repositories in DIRECTORY and listening
     on PORT for incoming connections.
+ 
+    If AUTHFILE is given, it should be a json file that maps usernames to
+    token strings to use for basic auth protection for ploy actions.
  
   ploy ls { -r REMOTE }
  
