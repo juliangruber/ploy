@@ -23,7 +23,6 @@ function Ploy (opts) {
     var self = this;
     self.branches = {};
     self.delay = opts.delay == undefined ? 3000 : opts.delay;
-    self.auth = opts.auth;
     
     self.ci = cicada(opts);
     self.ci.on('commit', self.deploy.bind(self));
@@ -37,13 +36,13 @@ function Ploy (opts) {
         var branch = self.branches[subdomain] ? subdomain : 'master';
         
         if (RegExp('^/_ploy\\b').test(req.url)) {
-            if (self.auth) {
+            if (opts.auth) {
                 var au = req.headers.authorization;
                 var m = /^basic\s+(\S+)/i.exec(au);
                 if (!m) return prohibit('ACCESS DENIED');
                 var s = Buffer(m[1], 'base64').toString().split(':');
                 var user = s[0], token = s[1];
-                if (!self.auth[user] || self.auth[user].token !== token) {
+                if (!opts.auth[user] || opts.auth[user] !== token) {
                     return prohibit('ACCESS DENIED');
                 }
             }
@@ -60,7 +59,7 @@ function Ploy (opts) {
         function prohibit (msg) {
             res.statusCode = 401;
             res.setHeader('www-authenticate', 'basic');
-            res.end(String(msg));
+            res.end(msg + '\n');
         }
     });
     

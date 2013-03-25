@@ -1,10 +1,12 @@
 #!/usr/bin/env node
 
-var createServer = require('../');
+var ploy = require('../');
 var argv = require('optimist').argv;
 var exec = require('child_process').exec;
 var hyperquest = require('hyperquest');
+
 var fs = require('fs');
+var path = require('path');
 
 var cmd = argv._[0];
 if (cmd === 'help' || argv.h || argv.help || process.argv.length <= 2) {
@@ -52,7 +54,13 @@ else if (cmd === 'remove' || cmd === 'rm') {
     });
 }
 else {
-    var server = createServer(argv.dir || argv.d || argv._.shift() || '.');
+    var dir = path.resolve(argv.dir || argv.d || argv._.shift() || '.');
+    var authFile = argv.auth || argv.a;
+    var server = ploy({
+        repodir: path.join(dir, 'repo'),
+        workdir: path.join(dir, 'work'),
+        auth: authFile && JSON.parse(fs.readFileSync(authFile))
+    });
     server.listen(argv.port || argv.p || argv._.shift());
 }
 
